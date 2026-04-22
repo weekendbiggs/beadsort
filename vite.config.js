@@ -5,7 +5,7 @@ export default defineConfig({
   base: '/beadsort/',
   plugins: [glsl()],
   build: {
-    target: 'es2020',
+    target: 'esnext', // top-level await for Rapier WASM init
     sourcemap: false,
   },
   server: {
