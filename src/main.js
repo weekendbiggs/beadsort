@@ -6,6 +6,7 @@ import { initPhysics, makeStepper } from './physics/world.js';
 import { onContact, dispatch } from './physics/contact.js';
 import { createBeadPool } from './scene/beads.js';
 import { attachInput } from './input/touch.js';
+import { createSortTracker } from './sort.js';
 import { COLORS } from './constants.js';
 
 const app = document.getElementById('app');
@@ -43,14 +44,33 @@ const phys = await initPhysics();
 const step = makeStepper(phys.world, phys.eventQueue, dispatch);
 const beadPool = createBeadPool(scene, phys.world);
 
-// Initial pile: 20 beads, 4 colors. Cascade visually because spawnPile staggers Y.
-beadPool.spawnPile(20, { colors: COLORS.slice(0, 4) });
+// Sort tracker — wires dish sensors to per-bead "in dish N" state and fires
+// level-complete when every spawned bead has settled in any dish.
+let activeColors = COLORS.slice(0, 4);
+let levelIdx = 0;
 
-// Contact-event sanity hook (audio bus replaces this in M7).
-onContact((a, b) => {
-  // no-op for now; M7 will route to audio bus
-  void a; void b;
+const sort = createSortTracker({
+  dishMeshes, beadPool,
+  onCorrect: () => { if (navigator.vibrate) navigator.vibrate(12); },
+  onWrong: () => {},
+  onComplete: () => setTimeout(nextLevel, 700),
 });
+
+function spawnLevel() {
+  beadPool.clearAll();
+  // Scale up: +4 beads per level, capped. Introduce a new color every 2 levels
+  // up to all 6.
+  const n = Math.min(20 + levelIdx * 4, 60);
+  const colorCount = Math.min(4 + Math.floor(levelIdx / 2), 6);
+  activeColors = COLORS.slice(0, colorCount);
+  beadPool.spawnPile(n, { colors: activeColors });
+  sort.setSpawnedCount(n);
+}
+function nextLevel() { levelIdx++; spawnLevel(); }
+spawnLevel();
+
+// Audio bus replaces this no-op in M7.
+onContact(() => {});
 
 // Input: tap/drag/release with velocity carryover.
 const updateHeld = attachInput({ renderer, camera, beadPool });
@@ -61,6 +81,7 @@ function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   updateHeld(dt);
   step(dt);
+  sort.update();
   beadPool.syncInstances();
   updateParallax(dt);
   renderer.render(scene, camera);
