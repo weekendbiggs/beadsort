@@ -331,6 +331,26 @@ See `/moodboard` directory. Primary inspirations:
 
 ---
 
+## play
+
+Live: **https://weekendbiggs.github.io/beadsort/**
+
+Tap a bead, drag it to the matching dish, release. That's it.
+
+## development
+
+```sh
+npm install
+npm run dev     # vite dev server
+npm run build   # static dist/
+```
+
+Pushes to `main` auto-deploy via GitHub Actions → GitHub Pages.
+
+Bundle size at v0.1.0: ~901 KB gzipped (Three.js + Rapier WASM inlined +
+jsfxr + game). Right at the README target; further trimming would require
+code-splitting Rapier or moving the WASM to a separate fetch.
+
 ## license
 
-TBD. MIT probably. Or WTFPL if we're feeling honest.
+MIT — see [LICENSE](LICENSE).
