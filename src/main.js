@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { buildEnvironment } from './scene/environment.js';
+import { buildTable } from './scene/table.js';
+import { buildCamera, attachParallax, reframeForAspect } from './scene/camera.js';
 
 const app = document.getElementById('app');
 const boot = document.getElementById('boot');
@@ -6,44 +9,41 @@ const boot = document.getElementById('boot');
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x4ec3ee);
-scene.fog = new THREE.Fog(0x4ec3ee, 8, 30);
+buildEnvironment(scene);
 
-const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-camera.position.set(0, 4, 5);
-camera.lookAt(0, 0, 0);
+const { group: tableGroup, dishMeshes } = buildTable();
+scene.add(tableGroup);
 
-scene.add(new THREE.HemisphereLight(0xbfe7ff, 0xf3e3b8, 1.0));
-const sun = new THREE.DirectionalLight(0xfff3da, 1.4);
-sun.position.set(3, 6, 2);
-scene.add(sun);
-
-// M1 placeholder: a glassy spinning cube — replaced in M2.
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshPhysicalMaterial({ color: 0x88ccff, transmission: 0.6, roughness: 0.15, clearcoat: 1, ior: 1.4 })
-);
-scene.add(cube);
+const camera = buildCamera();
+const updateParallax = attachParallax(camera);
 
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
   renderer.setSize(w, h, false);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
+  reframeForAspect(camera, w, h);
 }
 resize();
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', resize);
 
 const clock = new THREE.Clock();
 function frame() {
-  const dt = clock.getDelta();
-  cube.rotation.x += dt * 0.6;
-  cube.rotation.y += dt * 0.9;
+  const dt = Math.min(clock.getDelta(), 0.05);
+  updateParallax(dt);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
 boot.remove();
 frame();
+
+// Expose for debugging in M3+.
+if (import.meta.env.DEV) {
+  window.__beadsort = { scene, camera, renderer, dishMeshes };
+}
