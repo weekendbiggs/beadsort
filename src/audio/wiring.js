@@ -2,6 +2,7 @@
 // module and out of main.js. Volume scales with relative impact velocity so
 // gentle settles are quiet and a sharp drop pops.
 import { play } from './bus.js';
+import { duckAmbient } from './ambient.js';
 import { onContact } from '../physics/contact.js';
 import { BEAD } from '../constants.js';
 
@@ -52,6 +53,7 @@ export function playRespawnCascade(n = 12) {
 }
 
 export function playLevelComplete() {
+  duckAmbient(900, 0.3);
   play('arpeggio_a', { volume: 0.7, pitch: 1.0 });
   setTimeout(() => play('arpeggio_b', { volume: 0.7, pitch: 1.25 }), 110);
   setTimeout(() => play('arpeggio_c', { volume: 0.8, pitch: 1.5 }), 230);

@@ -9,6 +9,7 @@ import { attachInput } from './input/touch.js';
 import { createSortTracker } from './sort.js';
 import { initAudio, setMuted, isMuted } from './audio/bus.js';
 import { PRESETS } from './audio/presets.js';
+import { startAmbient } from './audio/ambient.js';
 import { wireContactsToAudio, playPickup, playRelease, playCorrect, playWrong, playRespawnCascade, playLevelComplete } from './audio/wiring.js';
 import { COLORS } from './constants.js';
 
@@ -76,7 +77,14 @@ spawnLevel();
 // the buffer decode finishes and the user gestures (auto-resume in bus.js).
 initAudio(PRESETS).then(() => {
   wireContactsToAudio();
-  // Trigger the first cascade audibly once buffers are ready.
+  // Ambient bed waits for the first user gesture (audio context resume) — we
+  // attach a one-shot listener inside startAmbient that no-ops if context
+  // isn't running yet.
+  const startOnGesture = () => {
+    startAmbient();
+    window.removeEventListener('pointerdown', startOnGesture);
+  };
+  window.addEventListener('pointerdown', startOnGesture, { once: true });
   playRespawnCascade(12);
 });
 
