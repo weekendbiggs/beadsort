@@ -5,6 +5,7 @@ import { buildCamera, attachParallax, reframeForAspect } from './scene/camera.js
 import { initPhysics, makeStepper } from './physics/world.js';
 import { onContact, dispatch } from './physics/contact.js';
 import { createBeadPool } from './scene/beads.js';
+import { attachInput } from './input/touch.js';
 import { COLORS } from './constants.js';
 
 const app = document.getElementById('app');
@@ -51,20 +52,14 @@ onContact((a, b) => {
   void a; void b;
 });
 
-// Debug button — respawns a fresh pile. Removed in M5+.
-const debugBtn = document.createElement('button');
-debugBtn.textContent = 'respawn';
-debugBtn.style.cssText = 'position:fixed;bottom:env(safe-area-inset-bottom,12px);left:50%;transform:translateX(-50%);z-index:10;padding:10px 18px;font:12px ui-monospace,monospace;background:rgba(0,0,0,0.35);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;cursor:pointer;';
-debugBtn.addEventListener('click', () => {
-  beadPool.clearAll();
-  beadPool.spawnPile(20, { colors: COLORS.slice(0, 4) });
-});
-document.body.appendChild(debugBtn);
+// Input: tap/drag/release with velocity carryover.
+const updateHeld = attachInput({ renderer, camera, beadPool });
 
 // ---- Frame loop ----
 const clock = new THREE.Clock();
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
+  updateHeld(dt);
   step(dt);
   beadPool.syncInstances();
   updateParallax(dt);
