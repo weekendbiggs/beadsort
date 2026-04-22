@@ -2,9 +2,10 @@
 // module and out of main.js. Volume scales with relative impact velocity so
 // gentle settles are quiet and a sharp drop pops.
 import { play } from './bus.js';
+import { bell, arpeggioMajor, softPop } from './synth.js';
 import { duckAmbient } from './ambient.js';
 import { onContact } from '../physics/contact.js';
-import { BEAD } from '../constants.js';
+import { BEAD, COLORS } from '../constants.js';
 
 export function wireContactsToAudio() {
   onContact((a, b) => {
@@ -28,7 +29,14 @@ export function wireContactsToAudio() {
       case 'table':      play('tick',  { volume: vol,        pitch }); break;
       case 'wall':       play('tick',  { volume: vol * 0.6,  pitch: pitch * 0.85 }); break;
       case 'dish-rim':
-      case 'dish-floor': play('ding',  { volume: vol * 0.85, pitch }); break;
+      case 'dish-floor': {
+        // FM bell tied to dish index for a tonal "different bowls ring
+        // different notes" effect. Adds character to a busy sort.
+        const dishIdx = other.dish ?? 0;
+        const note = 440 * Math.pow(2, (dishIdx * 2) / 12); // whole-step ladder
+        bell(note, Math.min(0.45, vol * 0.6), 0.35);
+        break;
+      }
       case 'bead':       play('plink', { volume: vol * 0.7,  pitch: pitch * 1.1 }); break;
       // sensor enter is judged + sounded in sort.js callbacks
       default: break;
@@ -36,13 +44,18 @@ export function wireContactsToAudio() {
   });
 }
 
-export function playPickup() { play('pickup', { volume: 0.6 }); }
-export function playRelease() { play('fwip', { volume: 0.35 }); }
-export function playCorrect() {
-  play('ding', { volume: 0.9, pitch: 1.05 });
-  setTimeout(() => play('correct', { volume: 0.5, pitch: 1.5 }), 30);
+export function playPickup() { softPop(0.45); }
+export function playRelease() { play('fwip', { volume: 0.3 }); }
+export function playCorrect(dishIdx = 0) {
+  const root = 440 * Math.pow(2, (dishIdx * 2) / 12);
+  bell(root, 0.5, 0.55);
+  setTimeout(() => bell(root * 1.5, 0.35, 0.5), 50);
 }
-export function playWrong()   { play('ding', { volume: 0.7 }); play('wrong', { volume: 0.35, pitch: 0.9 }); }
+export function playWrong(dishIdx = 0) {
+  const root = 440 * Math.pow(2, (dishIdx * 2) / 12);
+  bell(root, 0.4, 0.35);
+  play('wrong', { volume: 0.25, pitch: 0.9 });
+}
 
 // Cascade for pile respawn — 10-15 ticks over ~400ms.
 export function playRespawnCascade(n = 12) {
@@ -53,11 +66,9 @@ export function playRespawnCascade(n = 12) {
 }
 
 export function playLevelComplete() {
-  duckAmbient(900, 0.3);
-  play('arpeggio_a', { volume: 0.7, pitch: 1.0 });
-  setTimeout(() => play('arpeggio_b', { volume: 0.7, pitch: 1.25 }), 110);
-  setTimeout(() => play('arpeggio_c', { volume: 0.8, pitch: 1.5 }), 230);
+  duckAmbient(1100, 0.3);
+  arpeggioMajor(523.25, 0.55); // C5 root
 }
 
-// Suppress unused-import warning for BEAD (kept for future per-bead-size scaling).
-void BEAD;
+// Suppress unused-import warning for BEAD/COLORS (kept for future tuning).
+void BEAD; void COLORS;

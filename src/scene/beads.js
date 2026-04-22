@@ -123,15 +123,27 @@ export function createBeadPool(scene, world) {
   function spawnPile(n, options = {}) {
     const colors = options.colors || COLORS.slice(0, 4);
     const shapeChoices = options.shapes || shapeNames;
+    const stagger = options.staggerMs ?? 0;
     const out = [];
-    for (let i = 0; i < n; i++) {
+    let i = 0;
+    function one() {
+      if (i >= n) return;
       const x = (Math.random() - 0.5) * 2 * (2.0 - BEAD.spawnXMargin);
       const z = THREE.MathUtils.lerp(BEAD.spawnZMin, BEAD.spawnZMax, Math.random());
-      const y = THREE.MathUtils.lerp(BEAD.spawnYMin, BEAD.spawnYMax, Math.random()) + i * 0.012;
+      const y = THREE.MathUtils.lerp(BEAD.spawnYMin, BEAD.spawnYMax, Math.random()) + i * 0.008;
       const color = colors[Math.floor(Math.random() * colors.length)];
       const shape = shapeChoices[Math.floor(Math.random() * shapeChoices.length)];
       const b = spawnBead({ x, y, z, color, shape });
       if (b) out.push(b);
+      i++;
+    }
+    if (stagger <= 0) { while (i < n) one(); return out; }
+    // Stagger: drop in batches over the requested window so the cascade reads
+    // visibly rather than as one frame of pop-in.
+    const batches = Math.min(8, n);
+    const perBatch = Math.ceil(n / batches);
+    for (let b = 0; b < batches; b++) {
+      setTimeout(() => { for (let k = 0; k < perBatch && i < n; k++) one(); }, (b / batches) * stagger);
     }
     return out;
   }

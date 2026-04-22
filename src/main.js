@@ -56,9 +56,9 @@ let levelIdx = 0;
 
 const sort = createSortTracker({
   dishMeshes, beadPool,
-  onCorrect: () => { playCorrect(); if (navigator.vibrate) navigator.vibrate(12); },
-  onWrong: () => { playWrong(); },
-  onComplete: () => { playLevelComplete(); setTimeout(nextLevel, 900); },
+  onCorrect: (_b, dishIdx) => { playCorrect(dishIdx); if (navigator.vibrate) navigator.vibrate(12); },
+  onWrong: (_b, dishIdx) => { playWrong(dishIdx); },
+  onComplete: () => { playLevelComplete(); setTimeout(nextLevel, 1100); },
 });
 
 function spawnLevel() {
@@ -66,7 +66,7 @@ function spawnLevel() {
   const n = Math.min(20 + levelIdx * 4, 60);
   const colorCount = Math.min(4 + Math.floor(levelIdx / 2), 6);
   activeColors = COLORS.slice(0, colorCount);
-  beadPool.spawnPile(n, { colors: activeColors });
+  beadPool.spawnPile(n, { colors: activeColors, staggerMs: 380 });
   sort.setSpawnedCount(n);
   playRespawnCascade(Math.min(n, 14));
 }
