@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0a4f7a" />
+    <title>beadSort()</title>
+    <style>
+      :root { color-scheme: dark; }
+      html, body { margin: 0; padding: 0; height: 100%; background: #0a4f7a; overflow: hidden; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+      #app { position: fixed; inset: 0; }
+      #app canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+      #ui { position: fixed; top: env(safe-area-inset-top, 8px); right: 8px; z-index: 10; font: 10px/1 ui-monospace, monospace; color: rgba(255,255,255,0.7); user-select: none; pointer-events: none; }
+      #ui button { pointer-events: auto; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.25); color: inherit; font: inherit; padding: 4px 6px; border-radius: 2px; cursor: pointer; }
+      #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.7); font: 11px ui-monospace, monospace; background: #0a4f7a; z-index: 100; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="ui"><button id="mute" title="mute">♪</button></div>
+    <div id="boot">loading…</div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

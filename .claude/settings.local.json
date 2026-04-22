@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -c user.email=syntheticsoftness@gmail.com -c user.name=weekendbiggs commit -m ' *)"
+    ]
+  }
+}
