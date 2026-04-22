@@ -2,6 +2,7 @@
 // fronds with the pixelated leaf canvas texture. Two trees flank the view.
 import * as THREE from 'three';
 import { palmFrondTexture } from '../gen/clouds.js';
+import { applyVertexSnap } from '../shaders/ps1.js';
 
 export function buildPalms() {
   const group = new THREE.Group();
@@ -29,10 +30,9 @@ export function buildPalms() {
     }
     pos.needsUpdate = true;
     trunkGeo.computeVertexNormals();
-    const trunk = new THREE.Mesh(
-      trunkGeo,
-      new THREE.MeshStandardMaterial({ color: 0x6b4a2c, roughness: 0.85, flatShading: true }),
-    );
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4a2c, roughness: 0.85, flatShading: true });
+    applyVertexSnap(trunkMat);
+    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
     trunk.castShadow = false;
     t.add(trunk);
 
@@ -41,9 +41,11 @@ export function buildPalms() {
     const frondCount = 7;
     for (let i = 0; i < frondCount; i++) {
       const a = (i / frondCount) * Math.PI * 2;
+      const fmat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide });
+      applyVertexSnap(fmat);
       const f = new THREE.Mesh(
         new THREE.PlaneGeometry(2.0 * scale, 0.7 * scale, 1, 1),
-        new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide }),
+        fmat,
       );
       f.position.set(
         Math.cos(a) * 0.9 * scale + Math.sin(trunkH / trunkH * Math.PI) * twist * scale,

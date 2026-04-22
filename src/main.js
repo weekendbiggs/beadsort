@@ -15,8 +15,9 @@ import { COLORS } from './constants.js';
 const app = document.getElementById('app');
 const boot = document.getElementById('boot');
 
+const RES_SCALE = 0.8; // PS1 crunch — render at 80% of CSS resolution, upscale via CSS image-rendering: pixelated
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5) * RES_SCALE);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
