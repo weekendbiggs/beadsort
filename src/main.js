@@ -25,7 +25,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-buildEnvironment(scene);
+const env = buildEnvironment(scene);
 
 const { group: tableGroup, dishMeshes } = buildTable();
 scene.add(tableGroup);
@@ -95,13 +95,16 @@ muteBtn?.addEventListener('click', () => {
 
 // ---- Frame loop ----
 const clock = new THREE.Clock();
+let elapsed = 0;
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
+  elapsed += dt;
   updateHeld(dt);
   step(dt);
   sort.update();
   beadPool.syncInstances();
   updateParallax(dt);
+  env.update(elapsed, camera);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
