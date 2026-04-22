@@ -7,6 +7,9 @@ import { onContact, dispatch } from './physics/contact.js';
 import { createBeadPool } from './scene/beads.js';
 import { attachInput } from './input/touch.js';
 import { createSortTracker } from './sort.js';
+import { initAudio, setMuted, isMuted } from './audio/bus.js';
+import { PRESETS } from './audio/presets.js';
+import { wireContactsToAudio, playPickup, playRelease, playCorrect, playWrong, playRespawnCascade, playLevelComplete } from './audio/wiring.js';
 import { COLORS } from './constants.js';
 
 const app = document.getElementById('app');
@@ -51,29 +54,44 @@ let levelIdx = 0;
 
 const sort = createSortTracker({
   dishMeshes, beadPool,
-  onCorrect: () => { if (navigator.vibrate) navigator.vibrate(12); },
-  onWrong: () => {},
-  onComplete: () => setTimeout(nextLevel, 700),
+  onCorrect: () => { playCorrect(); if (navigator.vibrate) navigator.vibrate(12); },
+  onWrong: () => { playWrong(); },
+  onComplete: () => { playLevelComplete(); setTimeout(nextLevel, 900); },
 });
 
 function spawnLevel() {
   beadPool.clearAll();
-  // Scale up: +4 beads per level, capped. Introduce a new color every 2 levels
-  // up to all 6.
   const n = Math.min(20 + levelIdx * 4, 60);
   const colorCount = Math.min(4 + Math.floor(levelIdx / 2), 6);
   activeColors = COLORS.slice(0, colorCount);
   beadPool.spawnPile(n, { colors: activeColors });
   sort.setSpawnedCount(n);
+  playRespawnCascade(Math.min(n, 14));
 }
 function nextLevel() { levelIdx++; spawnLevel(); }
 spawnLevel();
 
-// Audio bus replaces this no-op in M7.
-onContact(() => {});
+// Audio. Init in parallel with first frame; sounds will simply no-op until
+// the buffer decode finishes and the user gestures (auto-resume in bus.js).
+initAudio(PRESETS).then(() => {
+  wireContactsToAudio();
+  // Trigger the first cascade audibly once buffers are ready.
+  playRespawnCascade(12);
+});
 
-// Input: tap/drag/release with velocity carryover.
-const updateHeld = attachInput({ renderer, camera, beadPool });
+// Input.
+const updateHeld = attachInput({
+  renderer, camera, beadPool,
+  onPickup: () => playPickup(),
+  onRelease: () => playRelease(),
+});
+
+// Mute toggle (UI button is in index.html).
+const muteBtn = document.getElementById('mute');
+muteBtn?.addEventListener('click', () => {
+  setMuted(!isMuted());
+  muteBtn.textContent = isMuted() ? '×' : '♪';
+});
 
 // ---- Frame loop ----
 const clock = new THREE.Clock();
