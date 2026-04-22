@@ -4,7 +4,7 @@ export default defineConfig({
   base: '/beadsort/',
   build: {
     target: 'esnext', // top-level await for Rapier WASM init
-    sourcemap: true,
+    sourcemap: false,
   },
   server: {
     host: true,

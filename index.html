@@ -19,21 +19,6 @@
     <div id="app"></div>
     <div id="ui"><button id="mute" title="mute">♪</button></div>
     <div id="boot">loading…</div>
-    <script>
-      window.addEventListener('error', (e) => {
-        const boot = document.getElementById('boot');
-        if (boot) boot.textContent = 'error: ' + (e.error?.stack || e.message);
-        boot.style.padding = '12px';
-        boot.style.whiteSpace = 'pre-wrap';
-        boot.style.fontSize = '10px';
-        boot.style.alignItems = 'flex-start';
-        boot.style.justifyContent = 'flex-start';
-      });
-      window.addEventListener('unhandledrejection', (e) => {
-        const boot = document.getElementById('boot');
-        if (boot) boot.textContent = 'reject: ' + (e.reason?.stack || e.reason);
-      });
-    </script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

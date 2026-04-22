@@ -29,7 +29,7 @@ export function buildTable() {
   const positions = dishPositions();
   for (let i = 0; i < DISH.count; i++) {
     const dish = buildDish(porcelainMap, COLORS[i].hex);
-    dish.position.set(positions[i].x, positions[i].y, positions[i].z);
+    dish.group.position.set(positions[i].x, positions[i].y, positions[i].z);
     group.add(dish.group);
     dishMeshes.push({ ...dish, color: COLORS[i], pos: positions[i], index: i });
   }
